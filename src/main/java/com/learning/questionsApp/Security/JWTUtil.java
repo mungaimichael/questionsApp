@@ -11,29 +11,30 @@ import org.springframework.stereotype.Component;
 import java.util.Date;
 
 @Component
-public class JWTUtil
-{
-//    get the secret from the application properies
+public class JWTUtil {
+
     @Value("${jwt_secret}")
     private String secret;
 
-    public  String generateToken(String username) throws  IllegalArgumentException {
+    // Token expiration time (e.g., 24 hours)
+    private static final long EXPIRATION_TIME = 24 * 60 * 60 * 1000;
+
+    public String generateToken(String username) throws IllegalArgumentException {
         return JWT.create()
-                .withSubject("user token")
+                .withSubject("User Details")
                 .withClaim("username", username)
                 .withIssuedAt(new Date())
+                .withExpiresAt(new Date(System.currentTimeMillis() + EXPIRATION_TIME))
                 .withIssuer("questionsApp/project/mungai")
                 .sign(Algorithm.HMAC256(secret));
     }
 
-    public String validateTokenAndRetrieveSubject(String token)throws JWTVerificationException {
+    public String validateTokenAndRetrieveSubject(String token) throws JWTVerificationException {
         JWTVerifier verifier = JWT.require(Algorithm.HMAC256(secret))
                 .withSubject("User Details")
-                .withIssuer("YOUR APPLICATION/PROJECT/COMPANY NAME")
+                .withIssuer("questionsApp/project/mungai")
                 .build();
         DecodedJWT jwt = verifier.verify(token);
-        return jwt.getClaim("email").asString();
+        return jwt.getClaim("username").asString();  // Changed from 'email' to 'username'
     }
-
 }
-
