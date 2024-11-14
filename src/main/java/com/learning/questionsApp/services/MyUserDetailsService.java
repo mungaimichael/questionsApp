@@ -6,6 +6,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Component;
 
 import java.util.Collections;
@@ -16,6 +17,18 @@ public class MyUserDetailsService implements UserDetailsService {
 
     @Autowired
     private UserRepo userRepo;
+
+    @Autowired
+    private BCryptPasswordEncoder encoder;
+
+    public String createUser(User user) throws Exception {
+        user.setPassword(encoder.encode(user.getPassword()));
+        if (userRepo.findByEmail(user.getEmail()).isPresent()) {
+            throw new Exception("User already exists");
+        }
+         userRepo.save(user);
+        return "User created successfully";
+    }
 
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
