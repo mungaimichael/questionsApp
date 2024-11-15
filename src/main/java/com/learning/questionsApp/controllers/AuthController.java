@@ -1,6 +1,7 @@
 package com.learning.questionsApp.controllers;
 
 import com.learning.questionsApp.Security.JWTUtil;
+import com.learning.questionsApp.dto.Response.Login;
 import com.learning.questionsApp.entity.User;
 import com.learning.questionsApp.repository.UserRepo;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,12 +25,23 @@ public class AuthController {
     @Autowired private JWTUtil jwtUtil;
     @Autowired private PasswordEncoder passwordEncoder;
 
-    @PostMapping("/register")
-    public Map<String, Object> registerHandler(@RequestBody User user){
-        String encodedPass = passwordEncoder.encode(user.getPassword());
-        user.setPassword(encodedPass);
-        user = userRepo.save(user);
-        String token = jwtUtil.generateToken(user.getEmail());
+    @PostMapping("/login")
+    public Map<String, Object> loginHandler(@RequestBody Login login) throws AuthenticationException {
+
+//        check if user exists in db
+        User user = userRepo.findByEmail(login.getEmail()).orElseThrow();
+
+//        check if password matches
+        if(!passwordEncoder.matches(login.getPassword(), user.getPassword())){
+            return Map.of(
+                    "message", "Invalid Credentials"
+            );
+        }
+
+//        encode password
+        String encodedPass = passwordEncoder.encode(login.getPassword());
+        login.setPassword(encodedPass);
+        String token = jwtUtil.generateToken(login.getEmail());
         return Collections.singletonMap("jwt-token", token);
     }
 
