@@ -22,13 +22,15 @@ public class MyUserDetailsService implements UserDetailsService {
     private BCryptPasswordEncoder encoder;
 
     public String createUser(User user) throws Exception {
-        user.setPassword(encoder.encode(user.getPassword()));
-        if (userRepo.findByEmail(user.getEmail()).isPresent()) {
-            throw new Exception("User already exists");
+            try {
+
+                userRepo.save(user);
+
+                return "User created successfully";
+            } catch (Exception e) {
+                throw e;
+            }
         }
-         userRepo.save(user);
-        return "User created successfully";
-    }
 
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
